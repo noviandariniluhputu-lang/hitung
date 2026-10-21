@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Maya Interaktif: Pengurangan 1-10</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container 16:9 Full Screen Landscape Container */
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 177.78vh; /* 16:9 aspect ratio */
+            max-height: 56.25vw;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @media (min-aspect-ratio: 16/9) {
+            #app-container {
+                width: calc(100vh * 16 / 9);
+                height: 100vh;
+            }
+        }
+
+        @media (max-aspect-ratio: 16/9) {
+            #app-container {
+                width: 100vw;
+                height: calc(100vw * 9 / 16);
+            }
+        }
+
+        /* SPLASH SCREEN */
+        #splash-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            transition: opacity 0.5s ease;
+        }
+
+        #splash-screen h1 {
+            font-size: 3.5vh;
+            margin-bottom: 1vh;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #splash-screen p {
+            font-size: 2vh;
+            margin-bottom: 3vh;
+            opacity: 0.9;
+        }
+
+        .loader-bar {
+            width: 30vw;
+            height: 1.5vh;
+            background: rgba(255,255,255,0.2);
+            border-radius: 1vh;
+            overflow: hidden;
+            margin-bottom: 3vh;
+        }
+
+        .loader-fill {
+            width: 0%;
+            height: 100%;
+            background: #22c55e;
+            transition: width 0.2s;
+        }
+
+        .btn-mulai {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 1.5vh 4vw;
+            font-size: 2.2vh;
+            font-weight: bold;
+            border-radius: 2vh;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.1s, background 0.2s;
+            display: none;
+        }
+
+        .btn-mulai:active {
+            transform: scale(0.95);
+            background: #16a34a;
+        }
+
+        header {
+            height: 10vh;
+            background: #1e293b;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2vw;
+            border-bottom: 0.4vh solid #38bdf8;
+        }
+
+        .header-title {
+            font-size: 2.4vh;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.8vw;
+        }
+
+        .tab-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 1vh 1.5vw;
+            font-size: 1.7vh;
+            border-radius: 1vh;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .tab-btn.active {
+            background: #0284c7;
+            font-weight: bold;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tab-btn:hover {
+            background: #475569;
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 2vh 3vw;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TAB 1: TEORI */
+        .theory-card {
+            background: white;
+            padding: 2.5vh 3vw;
+            border-radius: 1.5vh;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2vh;
+        }
+
+        .theory-card h2 {
+            font-size: 2.8vh;
+            color: #0369a1;
+            margin-bottom: 1.5vh;
+        }
+
+        .theory-card p, .theory-card li {
+            font-size: 2vh;
+            color: #334155;
+            line-height: 1.5;
+            margin-bottom: 1vh;
+        }
+
+        .theory-card ul {
+            padding-left: 2vw;
+        }
+
+        .procedure-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2vw;
+            height: 100%;
+        }
+
+        .step-box {
+            background: white;
+            padding: 2vh;
+            border-radius: 1.5vh;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .step-number {
+            background: #0284c7;
+            color: white;
+            width: 4vh;
+            height: 4vh;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 2vh;
+            margin-bottom: 1.5vh;
+        }
+
+        .step-box h3 {
+            font-size: 2.2vh;
+            color: #1e293b;
+            margin-bottom: 1vh;
+        }
+
+        .step-box p {
+            font-size: 1.8vh;
+            color: #475569;
+        }
+
+        /* TAB 3: SIMULASI (LAB MAYA) */
+        #simulation-tab {
+            display: flex;
+            flex-direction: row;
+            gap: 2vw;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .sim-panel {
+            background: white;
+            border-radius: 2vh;
+            padding: 2vh 2.5vw;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 85%;
+        }
+
+        .playground {
+            flex: 2;
+            border: 0.3vh dashed #cbd5e1;
+            border-radius: 1.5vh;
+            background: #f8fafc;
+            width: 100%;
+            height: 50vh;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            padding: 2vh;
+            gap: 1.5vh;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .apple-item {
+            width: 6vh;
+            height: 6vh;
+            background: radial-gradient(circle at 30% 30%, #f87171, #dc2626);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            font-size: 3vh;
+            transition: transform 0.2s, opacity 0.3s;
+            position: relative;
+        }
+
+        .apple-item::before {
+            content: '';
+            position: absolute;
+            top: -0.6vh;
+            width: 0.8vh;
+            height: 1.2vh;
+            background: #78350f;
+            border-radius: 0.2vh;
+        }
+
+        .apple-item:hover {
+            transform: scale(1.1);
+        }
+
+        .apple-item.eaten {
+            opacity: 0.2;
+            transform: scale(0.7);
+            pointer-events: none;
+            filter: grayscale(80%);
+        }
+
+        .control-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .equation-display {
+            font-size: 4vh;
+            font-weight: bold;
+            color: #1e293b;
+            background: #e2e8f0;
+            padding: 1.5vh 3vw;
+            border-radius: 1vh;
+            letter-spacing: 0.2vw;
+        }
+
+        .instruction-banner {
+            font-size: 2vh;
+            color: #0369a1;
+            background: #e0f2fe;
+            padding: 1vh 2vw;
+            border-radius: 1vh;
+            border-left: 0.5vh solid #0284c7;
+        }
+
+        .btn-action {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 1.5vh 2.5vw;
+            font-size: 2vh;
+            font-weight: bold;
+            border-radius: 1vh;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-action:hover { background: #dc2626; }
+        .btn-action:active { transform: scale(0.95); }
+
+        .btn-reset {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 1vh 2vw;
+            font-size: 1.8vh;
+            border-radius: 1vh;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-reset:hover { background: #475569; }
+
+        /* TAB 4: LKPD & TAB 5: DEVELOPER */
+        .lkpd-card {
+            background: white;
+            padding: 3vh 4vw;
+            border-radius: 1.5vh;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .lkpd-header {
+            text-align: center;
+            margin-bottom: 2vh;
+            border-bottom: 0.2vh solid #e2e8f0;
+            padding-bottom: 1.5vh;
+        }
+
+        .lkpd-header h2 { font-size: 2.5vh; color: #1e293b; margin-bottom: 0.5vh; }
+        .lkpd-header p { font-size: 1.8vh; color: #64748b; }
+
+        .lkpd-body p {
+            font-size: 1.9vh;
+            color: #334155;
+            margin-bottom: 1.5vh;
+        }
+
+        .lkpd-question {
+            background: #f8fafc;
+            padding: 1.5vh 2vw;
+            border-radius: 1vh;
+            margin-bottom: 1.5vh;
+            border: 0.1vh solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lkpd-question span { font-size: 1.9vh; font-weight: 500; color: #1e293b; }
+        .lkpd-question input {
+            width: 8vw;
+            padding: 0.8vh;
+            font-size: 1.9vh;
+            text-align: center;
+            border: 0.2vh solid #cbd5e1;
+            border-radius: 0.8vh;
+        }
+
+        .btn-submit-lkpd {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 1.2vh 3vw;
+            font-size: 1.8vh;
+            font-weight: bold;
+            border-radius: 1vh;
+            cursor: pointer;
+            display: block;
+            margin: 2vh auto 0;
+        }
+
+        .dev-card {
+            background: white;
+            padding: 3vh 4vw;
+            border-radius: 1.5vh;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .dev-card h2 { font-size: 3vh; color: #0284c7; margin-bottom: 1.5vh; }
+        .dev-card p { font-size: 2vh; color: #334155; line-height: 1.6; margin-bottom: 1vh; }
+        .dev-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 0.8vh 2vw;
+            border-radius: 2vh;
+            font-weight: bold;
+            font-size: 1.8vh;
+            margin-top: 1vh;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <h1>Lab Maya Interaktif: Pengurangan 1-10</h1>
+        <p>Fase A - Kelas 1 Sekolah Dasar</p>
+        <div class="loader-bar">
+            <div class="loader-fill" id="loader-fill"></div>
+        </div>
+        <p id="loading-text" style="font-size: 1.6vh; margin-bottom: 2vh;">Memuat aset suara & komponen...</p>
+        <button class="btn-mulai" id="btn-mulai" onclick="startApp()">MULAI BELAJAR</button>
+    </div>
+
+    <!-- HEADER & NAVIGATION -->
+    <header>
+        <div class="header-title">🍎 Pengurangan 1-10</div>
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('theory', event)">Teori</button>
+            <button class="tab-btn" onclick="switchTab('procedure', event)">Prosedur</button>
+            <button class="tab-btn" onclick="switchTab('simulation', event)">Simulasi</button>
+            <button class="tab-btn" onclick="switchTab('lkpd', event)">LKPD</button>
+            <button class="tab-btn" onclick="switchTab('developer', event)">Pengembang</button>
+        </nav>
+    </header>
+
+    <!-- CONTENT CONTAINER -->
+    <div class="content-area">
+        
+        <!-- 1. TEORI -->
+        <div id="theory" class="tab-content active">
+            <div class="theory-card">
+                <h2>Apa itu Pengurangan?</h2>
+                <p>Pengurangan adalah proses mengambil atau mengurangi jumlah benda yang ada sehingga jumlahnya menjadi lebih sedikit.</p>
+                <p>Lambang pengurangan adalah tanda minus (<strong>-</strong>), dan tanda hasil sama dengan (<strong>=</strong>).</p>
+            </div>
+            <div class="theory-card">
+                <h2>Contoh Cerita Sehari-hari</h2>
+                <ul>
+                    <li>Ibu mempunyai 5 buah apel. Adik memakan 2 buah apel. Sisa apel ibu adalah 3 buah (5 - 2 = 3).</li>
+                    <li>Kamu punya 4 balon, lalu 1 balon meletus. Sisa balonmu tinggal 3 (4 - 1 = 3).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. PROSEDUR -->
+        <div id="procedure" class="tab-content">
+            <div class="procedure-steps" style="width: 100%;">
+                <div class="step-box">
+                    <div class="step-number">1</div>
+                    <h3>Pilih Menu Simulasi</h3>
+                    <p>Buka tab Simulasi untuk mulai melakukan percobaan pengurangan interaktif menggunakan buah apel.</p>
+                </div>
+                <div class="step-box">
+                    <div class="step-number">2</div>
+                    <h3>Klik untuk Mengambil</h3>
+                    <p>Klik pada buah apel di keranjang untuk "memakan" atau mengambilnya satu per satu sesuai perintah soal.</p>
+                </div>
+                <div class="step-box">
+                    <div class="step-number">3</div>
+                    <h3>Perhatikan Hasilnya</h3>
+                    <p>Lihat kalimat matematika yang otomatis berubah dan hitung sisa apel yang belum diambil.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SIMULASI -->
+        <div id="simulation" class="tab-content">
+            <div id="simulation-tab" style="width: 100%; height: 100%;">
+                <div class="sim-panel playground" id="playground">
+                    <!-- Apel akan digenerate via Javascript -->
+                </div>
+                <div class="sim-panel control-panel">
+                    <div class="instruction-banner" id="instruction-banner">
+                        Tugas: Ambil 2 buah apel dari 5 apel!
+                    </div>
+                    <div class="equation-display" id="equation-display">
+                        5 - 2 = 3
+                    </div>
+                    <button class="btn-action" onclick="randomizeTask()">Soal Baru</button>
+                    <button class="btn-reset" onclick="resetSimulation()">Reset Simulasi</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. LKPD -->
+        <div id="lkpd" class="tab-content">
+            <div class="lkpd-card">
+                <div class="lkpd-header">
+                    <h2>Lembar Kerja Peserta Didik (LKPD)</h2>
+                    <p>Fase A - Kelas 1 SD | Pengurangan Bilangan 1-10</p>
+                </div>
+                <div class="lkpd-body">
+                    <p>Isilah titik-titik di bawah ini dengan jawaban yang benar!</p>
+                    
+                    <div class="lkpd-question">
+                        <span>1. 6 - 2 = ...</span>
+                        <input type="number" id="ans1" placeholder="?">
+                    </div>
+                    <div class="lkpd-question">
+                        <span>2. 8 - 3 = ...</span>
+                        <input type="number" id="ans2" placeholder="?">
+                    </div>
+                    <div class="lkpd-question">
+                        <span>3. 7 - 4 = ...</span>
+                        <input type="number" id="ans3" placeholder="?">
+                    </div>
+                    <div class="lkpd-question">
+                        <span>4. 10 - 5 = ...</span>
+                        <input type="number" id="ans4" placeholder="?">
+                    </div>
+
+                    <button class="btn-submit-lkpd" onclick="checkLKPD()">Periksa Jawaban</button>
+                    <p id="lkpd-result" style="text-align: center; margin-top: 1.5vh; font-weight: bold;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. PENGEMBANG -->
+        <div id="developer" class="tab-content">
+            <div class="dev-card">
+                <h2>Tentang Pengembang</h2>
+                <p>Lab maya interaktif ini dikembangkan khusus untuk mendukung pembelajaran matematika yang menyenangkan bagi siswa Fase A Sekolah Dasar.</p>
+                <p><strong>Nama Pengembang:</strong> Ni Luh Putu Noviandari, S.Pd.</p>
+                <p><strong>Instansi:</strong> Guru SD</p>
+                <div class="dev-badge">Fase A - Kelas 1 Merdeka Belajar</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            let now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'pop') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        } catch(e) {
+            // Audio context error fallback
+        }
+    }
+
+    // LOADING SIMULATION
+    let progress = 0;
+    const loaderFill = document.getElementById('loader-fill');
+    const btnMulai = document.getElementById('btn-mulai');
+    const loadingText = document.getElementById('loading-text');
+
+    const loadInterval = setInterval(() => {
+        progress += Math.floor(Math.random() * 25) + 10;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(loadInterval);
+            loaderFill.style.width = '100%';
+            loadingText.style.display = 'none';
+            btnMulai.style.display = 'inline-block';
+        } else {
+            loaderFill.style.width = progress + '%';
+        }
+    }, 150);
+
+    function startApp() {
+        initAudio();
+        playSound('success');
+        document.getElementById('splash-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            initSimulation();
+        }, 500);
+    }
+
+    function switchTab(tabId, event) {
+        playSound('click');
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
+    }
+
+    // SIMULATION LOGIC
+    let totalApples = 5;
+    let takeApples = 2;
+    let currentEaten = 0;
+
+    function initSimulation() {
+        randomizeTask();
+    }
+
+    function randomizeTask() {
+        playSound('click');
+        totalApples = Math.floor(Math.random() * 4) + 5; // 5 to 8
+        takeApples = Math.floor(Math.random() * (totalApples - 2)) + 1; // 1 to total-2
+        currentEaten = 0;
+        renderPlayground();
+        updateEquation();
+    }
+
+    function resetSimulation() {
+        playSound('click');
+        currentEaten = 0;
+        renderPlayground();
+        updateEquation();
+    }
+
+    function renderPlayground() {
+        const playground = document.getElementById('playground');
+        playground.innerHTML = '';
+        
+        document.getElementById('instruction-banner').innerText = 
+            `Tugas: Ambil ${takeApples} buah apel dari ${totalApples} apel!`;
+
+        for (let i = 0; i < totalApples; i++) {
+            const apple = document.createElement('div');
+            apple.className = 'apple-item';
+            apple.innerHTML = '🍎';
+            apple.onclick = () => eatApple(i, apple);
+            playground.appendChild(apple);
+        }
+    }
+
+    function eatApple(index, element) {
+        if (!element.classList.contains('eaten') && currentEaten < takeApples) {
+            element.classList.add('eaten');
+            currentEaten++;
+            playSound('pop');
+            updateEquation();
+
+            if (currentEaten === takeApples) {
+                setTimeout(() => {
+                    playSound('success');
+                }, 300);
+            }
+        }
+    }
+
+    function updateEquation() {
+        const sisa = totalApples - currentEaten;
+        document.getElementById('equation-display').innerText = 
+            `${totalApples} - ${currentEaten} = ${sisa}`;
+    }
+
+    function checkLKPD() {
+        playSound('click');
+        const a1 = parseInt(document.getElementById('ans1').value);
+        const a2 = parseInt(document.getElementById('ans2').value);
+        const a3 = parseInt(document.getElementById('ans3').value);
+        const a4 = parseInt(document.getElementById('ans4').value);
+
+        let score = 0;
+        if (a1 === 4) score++;
+        if (a2 === 5) score++;
+        if (a3 === 3) score++;
+        if (a4 === 5) score++;
+
+        const resultEl = document.getElementById('lkpd-result');
+        if (score === 4) {
+            playSound('success');
+            resultEl.style.color = '#16a34a';
+            resultEl.innerText = `Hebat! Jawabanmu benar semua (Nilai: 100/100) 🎉`;
+        } else {
+            resultEl.style.color = '#dc2626';
+            resultEl.innerText = `Kamu benar ${score} dari 4 soal. Ayo periksa lagi! 💪`;
+        }
+    }
+</script>
+
+</body>
+</html>
